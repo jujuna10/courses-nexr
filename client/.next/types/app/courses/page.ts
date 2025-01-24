@@ -1,4 +1,4 @@
-// File: /home/jujuna/Desktop/courses-project/client/src/app/courses/page.tsx
+// File: /home/jujuna/Desktop/courses-nexr/client/src/app/courses/page.tsx
 import * as entry from '../../../../src/app/courses/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

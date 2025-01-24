@@ -142,39 +142,83 @@ app.get('/profile/:id', async (req, res) => {
 
 app.post('/courses', async (req, res) => {
     try {
-        const {name, time, status, category, teacher, price, level, userNumber} = req.body;
-        
-        const checkQuery = `SELECT course_id FROM courses WHERE course_id = $1`;
-        const checkResult = await pool.query(checkQuery, [courseId]);
-        
-        if (checkResult.rows.length > 0) {
-            return res.status(400).json({ error: 'error' });
-        }
-        
-        const query = `INSERT INTO courses 
-            (course_name, course_time, course_status, course_category, 
-             course_teacher, course_price, course_level) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7) 
-        RETURNING course_id`;
-        
-        const courseResult = await pool.query(query, 
-            [name, time, status, category, teacher, price, level]);
+        const { id, name, userNumber } = req.body;
 
-        const query2 = `INSERT INTO student_courses (student_id, course_id) 
-        VALUES ((SELECT student_id FROM students WHERE student_number = $1), $2)`;
-        
-        await pool.query(query2, [userNumber, courseResult.rows[0].course_id]);
-        
-        res.status(200).json({ message: 'success' });
+        // Find course id
+        const findCourseQuery = 'SELECT course_id FROM courses WHERE course_name = $1';
+        const findStudentQuery = 'SELECT student_id FROM students WHERE student_number = $1';
+
+        const courseResult = await pool.query(findCourseQuery, [name]);
+
+        if (courseResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Course not found' });
+        }
+
+        const studentResult = await pool.query(findStudentQuery, [userNumber]);
+
+        if (studentResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Student not found' });
+        }
+
+        const studentId = studentResult.rows[0].student_id;
+        const courseId = courseResult.rows[0].course_id;
+
+        // Check if student is already enrolled in this course
+        const checkEnrollmentQuery = 'SELECT * FROM student_courses WHERE student_id = $1 AND course_id = $2';
+        const enrollmentResult = await pool.query(checkEnrollmentQuery, [studentId, courseId]);
+
+        if (enrollmentResult.rows.length > 0) {
+            return res.status(400).json({ error: 'Student is already enrolled in this course' });
+        }
+
+        // Insert into student_courses
+        const insertQuery = 'INSERT INTO student_courses (student_id, course_id) VALUES ($1, $2)';
+        await pool.query(insertQuery, [studentId, courseId]);
+
+        res.status(200).json({ message: 'Course successfully assigned' });
+
     } catch (err) {
         console.error('Database Error:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-app.get('/profile', (req,res) => {
 
-})
+
+// app.get('/profile', (req,res) => {
+
+// })
+
+// app.post('/courses', async (req, res) => {
+//     try {
+//         const { userNumber } = req.body;
+
+//         // სტუდენტის ID-ის პოვნა
+//         const findStudent = 'SELECT student_id FROM students WHERE student_number = $1';
+//         const studentResult = await pool.query(findStudent, [userNumber]);
+
+//         if (studentResult.rows.length === 0) {
+//             return res.status(404).json({ error: 'Student not found' });
+//         }
+
+//         const studentId = studentResult.rows[0].student_id;
+
+//         // სტუდენტთან დაკავშირებული კურსების პოვნა
+//         const findCoursesQuery = `
+//             SELECT courses.course_id, courses.course_name
+//             FROM student_courses
+//             JOIN courses ON student_courses.course_id = courses.course_id
+//             WHERE student_courses.student_id = $1
+//         `;
+//         const coursesResult = await pool.query(findCoursesQuery, [studentId]);
+
+//         res.status(200).json(coursesResult.rows);
+//     } catch (err) {
+//         console.error('Database Error:', err);
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+
 
 
 app.listen(4001, () => {
