@@ -219,6 +219,57 @@ app.post('/courses', async (req, res) => {
 //     }
 // });
 
+app.post('/statistic', async (req, res) => {
+    const { id, avgAttendance, avgScore, roundedDuration, homework } = req.body;
+  
+    try {
+      const findStudentQuery = 'SELECT student_id FROM students WHERE student_number = $1';
+      const studentResult = await pool.query(findStudentQuery, [id]);
+  
+      if (studentResult.rows.length === 0) {
+        return res.status(400).json({ error: 'Student not found' });
+      }
+  
+      const studentId = studentResult.rows[0].student_id;
+  
+      const intoStatistic = `
+        INSERT INTO statistics (student_id, attendances, scores, duration, homeworks) 
+        VALUES ($1, $2, $3, $4, $5)
+      `;
+  
+      await pool.query(intoStatistic, [
+        studentId, 
+        avgAttendance,
+        avgScore,
+        roundedDuration,
+        homework,
+      ]);
+  
+      res.status(201).json({ message: 'Statistics inserted successfully' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.get('/statistic/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const findStatsQuery = `SELECT * FROM statistics WHERE student_id = $1`;
+        const getInfo = await pool.query(findStatsQuery, [id]);
+        
+        if (getInfo.rows.length === 0) {
+            return res.status(404).json({ message: 'Statistics not found' });
+        }
+
+        res.status(200).json(getInfo.rows);
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 
 app.listen(4001, () => {
