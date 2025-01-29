@@ -319,7 +319,7 @@ function page() {
                       cx="50"
                       cy="50"
                       r={radius}
-                      stroke={getColor(item)}
+                      stroke={getColor(Number(item))}
                       strokeWidth="8"
                       fill="none"
                       strokeDasharray={circumference}
@@ -327,7 +327,7 @@ function page() {
                       strokeLinecap="round"
                       transform="rotate(-90 50 50)"
                     />
-                    <text x="50" y="55" textAnchor="middle" fontSize="20" fill={getColor(item)}>
+                    <text x="50" y="55" textAnchor="middle" fontSize="20" fill={getColor(Number(item))}>
                       {item}%
                     </text>
                 </svg>
