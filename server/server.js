@@ -219,11 +219,11 @@ app.post('/courses', async (req, res) => {
 //     }
 // });
 
-app.post('/statistic', async (req, res) => {
-    const { id, avgAttendance, avgScore, roundedDuration, homework } = req.body;
-  
+app.post('/statistic/:id/:avgAttendance/:avgScore/:roundedDuration/:homework', async (req, res) => {
+    const {id, avgAttendance, avgScore ,roundedDuration, homework} = req.params;
+
     try {
-      const findStudentQuery = 'SELECT student_id FROM students WHERE student_number = $1';
+      const findStudentQuery = 'SELECT * FROM students WHERE student_number = $1';
       const studentResult = await pool.query(findStudentQuery, [id]);
   
       if (studentResult.rows.length === 0) {
@@ -232,10 +232,7 @@ app.post('/statistic', async (req, res) => {
   
       const studentId = studentResult.rows[0].student_id;
   
-      const intoStatistic = `
-        INSERT INTO statistics (student_id, attendances, scores, duration, homeworks) 
-        VALUES ($1, $2, $3, $4, $5)
-      `;
+      const intoStatistic = `INSERT INTO statistics (student_id, attendances, scores, duration, homeworks) VALUES ($1, $2, $3, $4, $5)`;
   
       await pool.query(intoStatistic, [
         studentId, 
@@ -250,15 +247,25 @@ app.post('/statistic', async (req, res) => {
       console.error(err);
       res.status(500).json({ message: 'Server error' });
     }
-  });
+   });
 
   app.get('/statistic/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
         const findStatsQuery = `SELECT * FROM statistics WHERE student_id = $1`;
-        const getInfo = await pool.query(findStatsQuery, [id]);
         
+        const findStudentQuery = 'SELECT * FROM students WHERE student_number = $1';
+        const studentResult = await pool.query(findStudentQuery, [id]);
+        
+        if (studentResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Student not found' });
+        }
+  
+        const studentId = studentResult.rows[0].student_id;
+        
+        const getInfo = await pool.query(findStatsQuery, [studentId]);
+
         if (getInfo.rows.length === 0) {
             return res.status(404).json({ message: 'Statistics not found' });
         }

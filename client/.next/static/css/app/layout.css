@@ -558,6 +558,9 @@ video {
 .mt-8 {
   margin-top: 2rem;
 }
+.mt-1 {
+  margin-top: 0.25rem;
+}
 .flex {
   display: flex;
 }
@@ -693,11 +696,17 @@ video {
 .grid-cols-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
 .flex-col {
   flex-direction: column;
 }
 .items-center {
   align-items: center;
+}
+.justify-start {
+  justify-content: flex-start;
 }
 .justify-end {
   justify-content: flex-end;
@@ -744,6 +753,12 @@ video {
 .gap-\[5\%\] {
   gap: 5%;
 }
+.gap-16 {
+  gap: 4rem;
+}
+.gap-6 {
+  gap: 1.5rem;
+}
 .gap-y-16 {
   row-gap: 4rem;
 }
@@ -776,6 +791,9 @@ video {
 }
 .border-\[2px\] {
   border-width: 2px;
+}
+.border {
+  border-width: 1px;
 }
 .border-b-\[1px\] {
   border-bottom-width: 1px;
@@ -862,6 +880,49 @@ video {
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+.bg-\[149\2c 139\2c 141\] {
+  background-color: 149,139,141;
+}
+.bg-\[rgb\(149\2c 139\2c 141\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(149 139 141 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(93\2c 36\2c 74\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(93 36 74 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(114\2c 78\2c 102\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(114 78 102 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(114\2c 78\2c 1\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(114 78 1 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(63\2c 16\2c 48\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(63 16 48 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(47\2c 26\2c 40\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(47 26 40 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(57\2c 44\2c 52\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(57 44 52 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(19\2c 4\2c 14\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(19 4 14 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(43\2c 25\2c 37\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(43 25 37 / var(--tw-bg-opacity, 1));
+}
+.bg-\[rgb\(37\2c 30\2c 35\)\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(37 30 35 / var(--tw-bg-opacity, 1));
 }
 .bg-opacity-60 {
   --tw-bg-opacity: 0.6;
@@ -1006,6 +1067,10 @@ video {
 }
 .text-\[35px\] {
   font-size: 35px;
+}
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 .font-bold {
   font-weight: 700;
@@ -1174,5 +1239,17 @@ video {
 }
 .active\:bg-transparent:active {
   background-color: transparent;
+}
+@media (min-width: 768px) {
+
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 

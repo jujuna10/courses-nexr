@@ -22,6 +22,14 @@ interface UserInfo {
   courses: { course_id: number }[];
   student?: Student
 }
+type Stat = {
+  student_id: string;
+  attendances:string;
+  scores:string;
+  duration:number;
+  homeworks:string
+}
+
 
 
 
@@ -31,17 +39,26 @@ function page() {
     const [userInfo,setUserInfo] = useState<UserInfo | null>(null)
     const [settings,setSettings] = useState<boolean>(false)
     const [showDetail,setShowDetail] = useState<boolean>(false)
+    const [courseIds, setCourseIds] = useState<number[]>([]);
+    const [statisticData,setStatisticData] = useState<Stat[]>([])
     const searchParams = useSearchParams()
     const id = searchParams.get('id')
-    const name = searchParams.get('name')
-    console.log(id,'id')
+    const studentName = searchParams.get('name')
 
     const router = useRouter()
+
+    useEffect(() => {
+      if (userInfo?.courses) {
+        const ids = userInfo.courses.map(course => course.course_id - 1);
+        setCourseIds(ids)
+      }
+    }, [userInfo]);
+    
 
     const { setUrlParams } = useUrlParams();
     useEffect(() => {
             if (userInfo) {
-                console.log("Setting URL Params:", userInfo.name, userInfo.email);
+                // console.log("Setting URL Params:", userInfo.name, userInfo.email);
                 setUrlParams({
                     name: userInfo.name,
                     id: userInfo.number,
@@ -82,9 +99,8 @@ function page() {
       }, [id])
 
       useEffect(() => {
-        console.log(userInfo, 'userinfo');
+        // console.log(userInfo, 'userinfo');
     }, [userInfo]);
-    // console.log(userInfo.name,'name')
        
     const seetingsMenu = () => {
       setSettings(!settings)
@@ -107,10 +123,9 @@ function page() {
 
     const routeToCourses = () => {
       if(userInfo){
-        router.push(`/courses?name=${name}&id=${id}`)
+        router.push(`/courses?name=${userInfo?.name}&id=${id}`)
       }
     }
-    console.log(userInfo, 'userinfo')
 
     interface Course {
       id:number
@@ -137,8 +152,8 @@ function page() {
 
     const coursesId = []
     coursesId.push(userInfo?.courses?.map(course => course.course_id - 1))
-    console.log(coursesId, 'coursesId')
-    console.log(userInfo?.courses?.map(course => course.course_id));
+
+    // const coursesId = userInfo?.courses?.map(course => course.course_id - 1) || [];
 
 
     const studentProperties = ['name', 'lastName', 'phone', 'age', 'email', 'number'];
@@ -149,44 +164,34 @@ function page() {
     const duration = Math.random() * (2 - 0.1) + 0.1;
     const roundedDuration = Math.round(duration * 10) / 10;
     const homework = Math.floor(Math.random() * (100 - 35 + 1)) + 35;
-    console.log(typeof(roundedDuration));
-
 
     useEffect(() => {
-      const fetchData = async () => {
-          if (!id) {
-              console.error('ID is not available');
-              return;
-          }
-
+      if (courseIds.length > 0) {
+        const fetchData = async () => {
+          if (!id || !userInfo) return;
           try {
-              const response = await fetch(`http://localhost:4001/statistic`, {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ 
-                    id,
-                    avgAttendance,
-                    avgScore,
-                    roundedDuration: parseFloat(roundedDuration.toFixed(1)),
-                    homework,
-                   }),
-              });
-
+            const response = await fetch(
+              `http://localhost:4001/statistic/${id}/${avgAttendance}/${avgScore}/${roundedDuration}/${homework}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+            console.log(await response.json());
           } catch (error) {
-              console.error('Error:', error);
+            console.error('Error:', error);
           }
-      };
+        };
+        fetchData();
+      }
+    }, [id, userInfo, courseIds]);
+   
 
-      fetchData();
-    }, [id, avgAttendance, avgScore, roundedDuration, homework])
 
     useEffect(() => {
       const fetchData = async () => {
           if (!id) {
               console.error('ID is not available');
-              return;
           }
 
           try {
@@ -198,19 +203,42 @@ function page() {
               });
 
               const data = await response.json();
-              console.log(data,'statistic')
+              // console.log(data,'statistic')
+              setStatisticData(data);
 
           } catch (error) {
               console.error('Error:', error);
           }
+
       };
 
       fetchData();
     }, [id])
 
+    console.log(statisticData)
+
+    console.log(courseIds)
+
+    const score:string = (statisticData[0]?.scores)
+
+    const stats = [statisticData[0]?.attendances,statisticData[0]?.scores,statisticData[0]?.homeworks,statisticData[0]?.duration]
+    const statsName = ['attendances','scores','homeworks','duration']
+
+
+    const getColor = (score:number) => {
+      if (score <= 50) return "red";
+      if (score <= 70) return "yellow";
+      return "green";
+    }
+
+    const radius:number = 45
+    const circumference:number = 2 * Math.PI * radius;
+    const progress:number = score ? (parseInt(score) / 100) * circumference : 0;
+
+
 
     return (
-      <div className='px-12 w-full bg-gradient-to-b from-[#111015] via-[#0c0c18] to-[#07081a]'>
+      <div className='px-12 w-full bg-gradient-to-b h-screen from-[#111015] via-[#0c0c18] to-[#07081a]'>
         <p className='text-white text-[20px] pt-5 hover:cursor-pointer' onClick={routeToCourses}>Buy course</p>
         <div>
           {/* name and lastname */}
@@ -247,40 +275,67 @@ function page() {
             </div>
         </div>
 
-        <div className='flex w-full'>
-          <div className='grid grid-cols-2 w-[50%]'>
-            {coursesId.map((item, index) => (
-              <div key={index}>
-                {item?.map(courseId => {
-                  const course = courses.find(course => course.id === courseId)
-                  return (
-                    <div key={courseId} className={`flex my-12 gap-5 w-[100%] py-4 px-5 border-[1px] border-gray-200 rounded-[10px] ${course?.category === 'Development' ? 'shadow-[0px_0px_10px_rgb(255,255,20)]' : course?.category === 'Design' ? 'shadow-[0px_0px_10px_rgb(0,0,255)]': 'shadow-[0px_0px_10px_rgb(255,255,255)]'}`}>
-                      <div className='w-full flex flex-col gap-5'>
-                          <p className='text-white text-center text-[20px]'>{course?.name} ({course?.category})</p>
-                          <div className='flex justify-between'>
-                              <p className='text-white'>{course?.time}</p>
-                              <p className='text-white'>{course?.status}</p>
-                          </div>
-                          <p className='text-blue-500 hover:cursor-pointer'>Mentor: {course?.teacher}</p>
-                          <p className='text-white'>Course level: {course?.level}</p>
-                          <p className='text-white text-right'>Month: {course?.price}$</p>
-                      </div>
+        <div className='flex w-full gap-20'>
+            <div className="grid grid-cols-2 gap-6 mt-16">
+            {coursesId.flat().map(courseId => {
+              const course = courses.find(c => c.id === courseId);
+              if (!course) return null;
+              
+              return (
+                <div 
+                  key={courseId} 
+                  className={`flex flex-col p-5 border border-gray-200 rounded-lg `}
+                >
+                  <div className="flex flex-col gap-5 w-full">
+                    <p className="text-white text-center text-xl">
+                      {course.name} ({course.category})
+                    </p>
+                    <div className="flex justify-between">
+                      <p className="text-white">{course.time}</p>
+                      <p className="text-white">{course.status}</p>
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+                    <p className="text-blue-500 hover:cursor-pointer">
+                      Mentor: {course.teacher}
+                    </p>
+                    <p className="text-white">Course level: {course.level}</p>
+                    <p className="text-white text-right">Month: {course.price}$</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 {/* ---------------------------------------------- */}
 
-          <div>
+          <div className='w-[50%]'>
             {/* statistic */}
-            {/* attendance */}
-            <div>
-
+            {/* score */}
+            <div className='grid grid-cols-2 gap-16 mt-16'>
+              {stats.map((item,index) => (
+                <div key={index} className='bg-[rgb(37,30,35)] w-[100%] flex justify-center flex-col gap-5 items-center rounded-[10px] h-[200px]'>
+                    <p className='text-white text-[20px]'>{statsName[index]}</p>
+                  <svg width="100" height="100" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r={radius} strokeWidth="10" fill="none" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      stroke={getColor(item)}
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={circumference - progress}
+                      strokeLinecap="round"
+                      transform="rotate(-90 50 50)"
+                    />
+                    <text x="50" y="55" textAnchor="middle" fontSize="20" fill={getColor(item)}>
+                      {item}%
+                    </text>
+                </svg>
+                </div>
+              ))}
             </div>
 
-            {/* scores */}
+            {/* attendance */}
             <div>
 
             </div>
